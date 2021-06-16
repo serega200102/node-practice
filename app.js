@@ -1,9 +1,17 @@
 
-const fs = require('fs')
-fs.writeFile("test.txt", "Hello мир!", function(error){
- 
-   if(error) throw error; // если возникла ошибка
+const fs = require('fs');
+
+
+
+let writeTxt = new Promise(function(resolve, reject){
+   fs.writeFile("Test.txt", "Hello мир!",function(error){})
+   resolve();
    console.log("Асинхронная запись файла завершена. Содержимое файла:");
-   let data = fs.readFileSync("test.txt", "utf8");
-   console.log(data);  // выводим считанные данные
+});
+
+writeTxt.then(() =>{
+   fs.readFile("Test.txt", "utf8", function(error,data){ // если возникла ошибка
+      console.log(data);
+    });
+
 });
