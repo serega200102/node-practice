@@ -5,7 +5,7 @@ const fs = require('fs');
 let writeTxt = new Promise(function(resolve, reject){
    fs.writeFile("Test.txt", "Hello мир!",function(error){
       if(error){
-         throw reject();
+         reject();
       }else{
          resolve();
       }
