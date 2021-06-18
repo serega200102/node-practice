@@ -3,15 +3,18 @@ const fs = require('fs');
 
 
 let writeTxt = new Promise(function(resolve, reject){
-   fs.writeFile("Tet.txt", "Hello мир!",function(error){
+   fs.writeFile("Test.txt", "Hello мир!",function(error){
       if(error){
-         console.log('бедаа')
-         reject();
-      }else{
-         resolve();
-      }
-      
+         let a = 1;
+      };
    })
+   if(a == 1){
+      console.log(",tlff");
+      reject();
+   }
+   else{
+      resolve();
+   }
 });
 
 writeTxt.then(() => {
