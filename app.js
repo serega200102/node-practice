@@ -3,7 +3,7 @@ const fs = require('fs');
 
 
 let writeTxt = new Promise(function(resolve, reject){
-   fs.writeFile("Tet.txt", "Hello мир!",function(error){
+   fs.writeFile("Z:/Users/nofelet/Desktop/node-practice/Test.txt", "Hello мир!",function(error){
       if(error){
          console.log('бедаа')
          reject();
