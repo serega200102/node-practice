@@ -6,4 +6,4 @@ server.on('request', (req, res)=>{
    res.end('Hello world');
 });
 
-server.listen(3000,() => console.log('Сервериу работает'));
+server.listen(3000,() => console.log('Сервер работает'));
