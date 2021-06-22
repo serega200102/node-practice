@@ -1,28 +1,46 @@
-const http = require("http");
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
-
-http.createServer((req,res) =>{
-   console.log(`req: ${req.url}`);
-   if(req.method ==='GET'){
+const {parse} = require ('querystring'); 
+const server = http.createServer((req, res) => {
+    if (req.method === 'POST') {
+      collectRequestData(req, result => {
+         console.log(result);
+         fs.writeFile("./static/Test.txt",JSON.stringify(result), function(error){
+            if(error){
+               console.log('бедаа')
+               console.log(error)
+               
+            }else{
+               console.log('записано')
+            } 
+         })
+         sendRes("showfile.html","text/html", res );
+     });
+  
+    }
+    else {
       if(req.url ==='/'){
          console.log('нормас html')
          sendRes("index.html","text/html", res );
       }
-      else{
-         console.log('плохо css или post запрос')
-         sendRes(req.url,getContentType(req.url) , res)
+      else if(req.url === '/showfile.html'){
+         sendRes("showfile.html","text/html", res );
       }
-   }
-   else{
-      console.log('f');
-      console.log(req.method);
-   }
-   
-  
+      else if(req.url === '/Test.txt?'){
+         sendRes("Test.txt","text/plain", res );
+         console.log('без вопроса')
+      }
+      else{
+         console.log('не html')
+         sendRes(req.url,getContentType(req.url) , res);
+      }
+    }
 }).listen(3000, () =>{
    console.log('Node port 3000');
 });
+
+
 
 function sendRes( url, contentType, res ){
    let file = path.join(__dirname , 'static', url);
@@ -32,6 +50,7 @@ function sendRes( url, contentType, res ){
          res.write('file not found');
          res.end();
          console.log(`error 404 ${file}`);
+         console.log(url);
       }
       else{
          res.writeHead(200,{'Content-Type': contentType});
@@ -55,5 +74,22 @@ function getContentType(url){
          return 'application/json';
       default:
          return 'application/octate-stream';
+   }
+}
+
+
+function collectRequestData(request, callback) {
+   const FORM_URLENCODED = 'application/x-www-form-urlencoded';
+   if(request.headers['content-type'] === FORM_URLENCODED) {
+       let body = '';
+       request.on('data', chunk => {
+           body += chunk.toString();
+       });
+       request.on('end', () => {
+           callback(parse(body));
+       });
+   }
+   else {
+       callback(null);
    }
 }
