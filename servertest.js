@@ -33,7 +33,9 @@ const server = http.createServer((req, res) => {
       }
       else{
          console.log('не html')
+         console.log(getContentType(req.url))
          sendRes(req.url,getContentType(req.url) , res);
+         
       }
     }
 }).listen(3000, () =>{
@@ -63,7 +65,7 @@ function sendRes( url, contentType, res ){
    })
 }
 function getContentType(url){
-   switch(path.extname(url)){
+  /* switch(path.extname(url)){
       case '.html':
          return "text/html";
       case '.css':
@@ -74,7 +76,16 @@ function getContentType(url){
          return 'application/json';
       default:
          return 'application/octate-stream';
-   }
+   }*/
+   const ContType = new Map([
+      [".html", "text/html"],
+      [".css", "text/css"],
+      [".js", "text/javascript"],
+      [".json", "application/json"]
+    ]);
+    return ContType.get(path.extname(url));
+    
+
 }
 
 
