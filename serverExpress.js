@@ -13,7 +13,7 @@ app.get('/about', function(req, res){
 app.post('/about', urlencodedParser, function(req, res){
    let info = req.body;
    console.log(info);
-   fs.appendFile('info.txt',JSON.stringify(info), function (err) {
+   fs.appendFile('info.txt',JSON.stringify(info)   , function (err) {
       if (err) throw err;
       console.log('Saved!');
     });
