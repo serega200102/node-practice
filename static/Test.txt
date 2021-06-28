@@ -1,1 +1,1 @@
-{"name":"Tatyana","email":"tsfil2202@gmail.com","check":"Send"}
+{"email":"serega200102@gmail.com","password":"123","password2":"123"}

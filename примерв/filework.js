@@ -22,3 +22,6 @@ writeTxt.then(() => {
     }).catch(()=>{
        console.log("Troble")
     })
+
+
+ 

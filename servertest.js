@@ -12,6 +12,7 @@ const server = http.createServer((req, res) => {
                console.log(error)
                
             }else{
+               console.log('gg')
                console.log('записано')
             } 
          })
