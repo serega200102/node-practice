@@ -49,13 +49,6 @@ const server = http.createServer((req, res) => {
       }
       else{
          collectRequestData(req, result => {
-            console.log(result);
-            console.log(result.password);
-            console.log(result.password2);
-            if(result.password != result.password2){
-               sendRes("reg2.html","text/html", res );
-            }
-            else{
                fs.writeFile("./static/Test.txt",JSON.stringify(result), function(error){
                   if(error){
                      console.log('бедаа')
@@ -67,9 +60,6 @@ const server = http.createServer((req, res) => {
                   } 
                })
                sendRes("reg.html","text/html", res );
-            }
-            
-            
         });
       }
       
