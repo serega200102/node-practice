@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+var crypto = require('crypto');
 const {parse} = require ('querystring'); 
 
 let obj;
@@ -23,19 +24,22 @@ const server = http.createServer((req, res) => {
                  }  
               })
            });
-           readtext.then((data) => {
-            console.log('тут инфа из сервера')
-            let a = data ;
-            console.log(a)
-            console.log(result)
-            if(result.email == data.email && result.password == data.password){
-               console.log('зашел')
-            }else{
-               console.log('не зашел')
-               console.log(result.email)
-               console.log(data.email)
+            readtext.then((data) => {
+               console.log('тут инфа из сервера')
+               let a = data ;
+               console.log(a)
+               console.log(result)
                console.log(result.password)
-               console.log(data.password)
+               result.password = crypto.createHash('md5').update(result.password).digest('hex');
+               console.log(result.password)
+             if(result.email == data.email && result.password == data.password){
+                console.log('зашел')
+              }else{
+                  console.log('не зашел')
+                  console.log(result.email)
+                  console.log(data.email)
+                  console.log(result.password)
+                  console.log(data.password)
             }
             
              }).catch(()=>{
@@ -44,13 +48,21 @@ const server = http.createServer((req, res) => {
             });
       }
       else{
+         /*var hash = crypto.createHash('md5').update(req).digest('hex');
+         console.log(hash);*/
          collectRequestData(req, result => {
+               console.log(result.password)
+               result.password = crypto.createHash('md5').update(result.password).digest('hex');
+
+               console.log(typeof(result))
+               console.log(result.password)
                fs.writeFile("./static/Test.txt",JSON.stringify(result), function(error){
                   if(error){
                      console.log('бедаа')
                      console.log(error)
                      
                   }else{
+
                      console.log(result)
                      console.log('записано')
                   } 
@@ -78,7 +90,9 @@ function collectRequestData(request, callback) {
    if(request.headers['content-type'] === FORM_URLENCODED) {
        let body = '';
        request.on('data', chunk => {
+
            body += chunk.toString();
+         console.log(body);
        });
        request.on('end', () => {
            callback(parse(body));
