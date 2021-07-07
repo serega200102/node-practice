@@ -5,6 +5,8 @@ var crypto = require('crypto');
 const {parse} = require ('querystring'); 
 
 let obj;
+let objmas = [];
+let objmas2 = [];
 const server = http.createServer((req, res) => {
    
 
@@ -22,29 +24,38 @@ const server = http.createServer((req, res) => {
                     console.log('бедаа')
                     reject();
                  }else{
-                     obj = JSON.parse(data);
-                    resolve(obj);
+                    console.log(typeof(JSON.parse(data)))
+                    let a = JSON.parse(data)
+                    resolve(a);
                     console.log('все ок')
+                   
                  }  
               })
            });
             readtext.then((data) => {
+               let index = -1;
                console.log('тут инфа из сервера')
-               let a = data ;
-               console.log(a)
+               let info = data ;
+               console.log(info)
                console.log(result)
                console.log(result.password)
+               for(let i = 0; i<info.length; i++ ){
+                  if(result.email == info[i].email){
+                     index = i;
+                  } 
+               }
                result.password = crypto.createHash('md5').update(result.password).digest('hex');
-               console.log(result.password)
-             if(result.email == data.email && result.password == data.password){
-                console.log('зашел')
-              }else{
-                  console.log('не зашел')
-                  console.log(result.email)
-                  console.log(data.email)
-                  console.log(result.password)
-                  console.log(data.password)
-            }
+              // console.log(result.password)
+             if(index == -1){
+                  console.log('нет такого email')
+               }
+               else if(result.password == info[index].password) {
+                  console.log('ВЫ ЗАШЛИ!!')
+                  sendRes("site.html","text/html", res );
+               }
+               else{
+                  console.log('пароль не верный')
+               }
             
              }).catch(()=>{
                 console.log("Troble")
@@ -52,12 +63,58 @@ const server = http.createServer((req, res) => {
             });
       }
       else{
-         /*var hash = crypto.createHash('md5').update(req).digest('hex');
-         console.log(hash);*/
          collectRequestData(req, result => {
-               console.log(result.password)
+               //console.log(result.password)
                result.password = crypto.createHash('md5').update(result.password).digest('hex');
-               fs.appendFile("./static/Test.txt",JSON.stringify(result), function(error){
+               let readtext2 = new Promise(function(resolve, reject){  
+                  fs.readFile("./static/Test.txt", "utf8", function(error,data){
+                       if(error){
+                          console.log('бедаа')
+                          reject();
+                       }else{
+                        console.log('файл считался');
+                        resolve(data)
+                       }  
+                    })
+                 });
+
+               readtext2.then((data) => {
+                  let a = []
+                  objmas = [];
+                  console.log(data)
+                  console.log(objmas)
+                  console.log('start')
+                  //console.log(JSON.parse(data))
+                  a = JSON.parse(data);
+                  console.log(a.length)
+                  console.log(objmas)
+                 // console.log(result)
+                  for(let i = 0; i <= a.length-1; i++){
+                     console.log('bu')
+                     console.log(i)
+                     objmas.push(a[i])
+                     
+                  }
+                  console.log('info')
+                  console.log(objmas)
+                  //console.log(a)
+                  //objmas.push(JSON.parse(data))
+                  objmas.push((result))
+                  //console.log(JSON.stringify(objmas))
+                  fs.writeFile("./static/Test.txt", JSON.stringify(objmas), function(error){
+                     if(error){
+                        console.log('бедаа')
+                        console.log(error)
+                        
+                     }else{
+                        console.log('записано')
+                     } 
+                  })
+
+               }).catch(()=>{
+                  console.log("Trobble")
+               })
+               /*fs.appendFile("./static/Test.txt",JSON.stringify(result), function(error){
                   if(error){
                      console.log('бедаа')
                      console.log(error)
@@ -67,7 +124,7 @@ const server = http.createServer((req, res) => {
                      console.log(result)
                      console.log('записано')
                   } 
-               })
+               })*/
                sendRes("reg.html","text/html", res );
         });
       }
@@ -93,7 +150,7 @@ function collectRequestData(request, callback) {
        request.on('data', chunk => {
 
            body += chunk.toString();
-         console.log(body);
+         //console.log(body);
        });
        request.on('end', () => {
            callback(parse(body));
