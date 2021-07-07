@@ -3,16 +3,20 @@ const fs = require('fs');
 const path = require('path');
 var crypto = require('crypto');
 const {parse} = require ('querystring'); 
+let objs = [];
 
-let obj;
 const server = http.createServer((req, res) => {
+   
+
+
+
    if (req.method === 'POST') {
 
       if(req.url == '/log.html'){
          collectRequestData(req, result => {
             
             
-         let readtext = new Promise(function(resolve, reject){  
+         /*let readtext = new Promise(function(resolve, reject){  
             fs.readFile("./static/Test.txt", "utf8", function(error,data){
                  if(error){
                     console.log('бедаа')
@@ -23,16 +27,57 @@ const server = http.createServer((req, res) => {
                     console.log('все ок')
                  }  
               })
+           });*/
+           
+           let readtext = new Promise(function(resolve, reject){  
+            fs.readFile("./static/Test.txt", "utf8", function(error,data){
+                 if(error){
+                    console.log('бедаа')
+                    reject();
+                 }else{
+                    let objs = []
+                    let sp = data.replace(/"/g,"")
+                    sp = sp.replace(/{/g,"")
+                    sp = sp.replace(/}/g,"")
+                    let splitted = sp.split("/n");
+                    
+                    
+                    for( let i = 0; i < splitted.length-1; i++){
+                       let splitLine = splitted[i].split(",");
+                       let obj = {}
+                       for(j=0; j<splitLine.length-1; j++){
+                          let splitelem = splitLine[j].split(':');
+                          obj[splitelem[0]] = splitelem[1].trim();
+                          objs.push(obj)    
+                       }
+                    } 
+                   resolve(objs)
+                 }  
+              })
            });
             readtext.then((data) => {
                console.log('тут инфа из сервера')
-               let a = data ;
-               console.log(a)
-               console.log(result)
-               console.log(result.password)
+               let info = data ;
+               let index = -1;
                result.password = crypto.createHash('md5').update(result.password).digest('hex');
                console.log(result.password)
-             if(result.email == data.email && result.password == data.password){
+               for(let i = 0; i<info.length; i++ ){
+                  if(result.email == info[i].email){
+                     index = i;
+                  } 
+               }
+               if(index == -1){
+                  console.log('нет такого email')
+               }
+               else if(result.password == info[index].password) {
+                  console.log('ВЫ ЗАШЛИ!!')
+                  sendRes("site.html","text/html", res );
+               }
+               else{
+                  console.log('пароль не верный')
+               }
+               
+             /*if(result.email == data.email && result.password == data.password){
                 console.log('зашел')
               }else{
                   console.log('не зашел')
@@ -40,7 +85,7 @@ const server = http.createServer((req, res) => {
                   console.log(data.email)
                   console.log(result.password)
                   console.log(data.password)
-            }
+            }*/
             
              }).catch(()=>{
                 console.log("Troble")
@@ -56,13 +101,24 @@ const server = http.createServer((req, res) => {
 
                console.log(typeof(result))
                console.log(result.password)
-               fs.writeFile("./static/Test.txt",JSON.stringify(result), function(error){
+               fs.appendFile("./static/Test.txt",JSON.stringify(result), function(error){
                   if(error){
                      console.log('бедаа')
                      console.log(error)
                      
                   }else{
 
+                     console.log(result)
+                     console.log('записано')
+                  } 
+               })
+               fs.appendFile("./static/Test.txt",'/n', function(error){
+                  if(error){
+                     console.log('бедаа')
+                     console.log(error)
+                     
+                  }else{
+                     console.log('туууут')
                      console.log(result)
                      console.log('записано')
                   } 
@@ -90,12 +146,15 @@ function collectRequestData(request, callback) {
    if(request.headers['content-type'] === FORM_URLENCODED) {
        let body = '';
        request.on('data', chunk => {
-
            body += chunk.toString();
          console.log(body);
        });
+       
        request.on('end', () => {
-           callback(parse(body));
+            body = parse(body)
+            console.log(body)
+            callback(body);
+
        });
    }
    else {
