@@ -2,11 +2,13 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 var crypto = require('crypto');
+let Cookies = require('cookies');
 const {parse} = require ('querystring'); 
 
 let obj;
 let objmas = [];
-
+let key = '';
+let countOfLogin = 0;
 let readtext = new Promise(function(resolve, reject){  
    fs.readFile("./static/Test.txt", "utf8", function(error,data){
         if(error){
@@ -26,12 +28,13 @@ let readtext = new Promise(function(resolve, reject){
 
      const server = http.createServer((req, res) => {
    
-
+      let cookies = new Cookies(req, res);
 
 
       if (req.method === 'POST') {
    
          if(req.url == '/log.html'){
+            
             collectRequestData(req, result => {
             let index = -1;
             console.log('тут инфа из сервера')
@@ -49,8 +52,12 @@ let readtext = new Promise(function(resolve, reject){
                   console.log('нет такого email')
                }
                else if(result.password == objmas[index].password) {
+                  countOfLogin += 1;
                   console.log('ВЫ ЗАШЛИ!!')
-                  sendRes("site.html","text/html", res );
+                  cookies.set(`${result.email}`,`true`)
+                  key = result.email 
+                  console.log(key)
+                  sendRes("site.html","text/html", res, req );
                }
                else{
                   console.log('пароль не верный')
@@ -77,7 +84,7 @@ let readtext = new Promise(function(resolve, reject){
                         } 
                      })
    
-                  sendRes("reg.html","text/html", res );
+                  sendRes("reg.html","text/html", res, req );
            });
          }
          
@@ -138,38 +145,89 @@ let readtext = new Promise(function(resolve, reject){
     }
    
    
-    function sendRes( url, contentType, res ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
-      let file = path.join(__dirname , 'static', url);
-      fs.readFile(file,'utf8',(err, data)=>{
-         if(err){
+    function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
+      console.log('TUUUUUT')
+      console.log(url)
+      if(url == '/site.html'){
+         console.log('проверка куки')
+         if(countOfLogin == 1){
+            console.log(countOfLogin)
+            let file = path.join(__dirname , 'static', url);
+            fs.readFile(file,'utf8',(err, data)=>{
+               if(err){
+                  res.writeHead(404);
+                  res.write('file not found');
+                  res.end();
+                  console.log(`error 404 ${file}`);
+                  console.log(url);
+               }
+               else{
+                  res.writeHead(200,{'Content-Type': contentType});
+                  res.write(data);
+                  res.end();
+                  console.log(file);
+               }
+            })
+         }else if(req.headers.cookie.includes('nph@rambler.ru') && req.headers.cookie.includes('true')){
+            let file = path.join(__dirname , 'static', url);
+            console.log(countOfLogin)
+         fs.readFile(file,'utf8',(err, data)=>{
+            if(err){
+               res.writeHead(404);
+               res.write('file not found');
+               res.end();
+               console.log(`error 404 ${file}`);
+               console.log(url);
+            }
+            else{
+               res.writeHead(200,{'Content-Type': contentType});
+               res.write(data);
+               res.end();
+               console.log(file);
+            }
+         })
+         }else{
+            console.log('не прошло')
             res.writeHead(404);
-            res.write('file not found');
-            res.end();
-            console.log(`error 404 ${file}`);
-            console.log(url);
+                  res.write('file not found');
+                  res.end();
+                  console.log(`error 404 ${file}`);
+                  console.log(url);
          }
-         else{
-            res.writeHead(200,{'Content-Type': contentType});
-            res.write(data);
-            res.end();
-            console.log(file);
-         }
-      })
+      }else{
+         let file = path.join(__dirname , 'static', url);
+         fs.readFile(file,'utf8',(err, data)=>{
+            if(err){
+               res.writeHead(404);
+               res.write('file not found');
+               res.end();
+               console.log(`error 404 ${file}`);
+               console.log(url);
+            }
+            else{
+               res.writeHead(200,{'Content-Type': contentType});
+               res.write(data);
+               res.end();
+               console.log(file);
+            }
+         })
+      }
+     
    }
    function getform(req,res){    //ФУНКЦИЯ ДЛЯ ЛОГИКИ ПЕРЕХОДОВ МЕЖДУ СТРАНИЦАМИ
       if(req.url ==='/'){
-         sendRes("reg.html","text/html", res );
+         sendRes("reg.html","text/html", res, req );
       }
       else if(req.url === '/log.html?'){
-         sendRes("log.html","text/html", res );
+         sendRes("log.html","text/html", res, req );
       }
       else if(req.url === '/reg2.html?'){
-         sendRes("reg2.html","text/html", res );
+         sendRes("reg2.html","text/html", res, req );
       }
       else{
          console.log('не html')
          console.log(getContentType(req.url))
-         sendRes(req.url,getContentType(req.url) , res);
+         sendRes(req.url,getContentType(req.url) , res, req);
       }
    }
 
