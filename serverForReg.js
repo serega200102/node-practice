@@ -4,7 +4,8 @@ const path = require('path');
 var crypto = require('crypto');
 let Cookies = require('cookies');
 const {parse} = require ('querystring'); 
-
+let name = 'Yes';
+var hashkey = crypto.createHash('md5').update(name).digest('hex');
 let obj;
 let objmas = [];
 let key = '';
@@ -32,15 +33,16 @@ let readtext = new Promise(function(resolve, reject){
 
 
       if (req.method === 'POST') {
-   
-         if(req.url == '/log.html'){
+         console.log('тут проверка url')
+         console.log(req.url)
+         if(req.url == '/site.html'){
             
             collectRequestData(req, result => {
             let index = -1;
-            console.log('тут инфа из сервера')
-            console.log(objmas)
-            console.log(result)
-            console.log(result.password)
+            //console.log('тут инфа из сервера')
+            //console.log(objmas)
+           // console.log(result)
+            //console.log(result.password)
             for(let i = 0; i<objmas.length; i++ ){
                if(result.email == objmas[i].email){
                   index = i;
@@ -55,9 +57,14 @@ let readtext = new Promise(function(resolve, reject){
                   countOfLogin += 1;
                   console.log('ВЫ ЗАШЛИ!!')
                   cookies.set(`${result.email}`,`true`)
-                  key = result.email 
-                  console.log(key)
-                  sendRes("site.html","text/html", res, req );
+                  
+                  
+                  cookies.set('User',`${hashkey}`)
+                  //getform(req,res);
+                  //sendRes("site.html","text/html", res, req );
+                  res.writeHead(302, {"Location": "site.html"});
+                  //res.write(data);
+                  res.end();
                }
                else{
                   console.log('пароль не верный')
@@ -83,7 +90,7 @@ let readtext = new Promise(function(resolve, reject){
                            console.log('записано')
                         } 
                      })
-   
+                  
                   sendRes("reg.html","text/html", res, req );
            });
          }
@@ -146,29 +153,10 @@ let readtext = new Promise(function(resolve, reject){
    
    
     function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
-      console.log('TUUUUUT')
+      console.log('TUUUUUUUUUUUUUUUUUUUUUUUUUT')
       console.log(url)
-      if(url == '/site.html'){
-         console.log('проверка куки')
-         if(countOfLogin == 1){
-            console.log(countOfLogin)
-            let file = path.join(__dirname , 'static', url);
-            fs.readFile(file,'utf8',(err, data)=>{
-               if(err){
-                  res.writeHead(404);
-                  res.write('file not found');
-                  res.end();
-                  console.log(`error 404 ${file}`);
-                  console.log(url);
-               }
-               else{
-                  res.writeHead(200,{'Content-Type': contentType});
-                  res.write(data);
-                  res.end();
-                  console.log(file);
-               }
-            })
-         }else if(req.headers.cookie.includes('nph@rambler.ru') && req.headers.cookie.includes('true')){
+      if(url == 'site.html'){   
+         if(req.headers.cookie.includes('User') && req.headers.cookie.includes(`${hashkey}`)){
             let file = path.join(__dirname , 'static', url);
             console.log(countOfLogin)
          fs.readFile(file,'utf8',(err, data)=>{
@@ -189,10 +177,10 @@ let readtext = new Promise(function(resolve, reject){
          }else{
             console.log('не прошло')
             res.writeHead(404);
-                  res.write('file not found');
-                  res.end();
-                  console.log(`error 404 ${file}`);
-                  console.log(url);
+               res.write('file not found');
+               res.end();
+               console.log(`error 404 ${file}`);
+               console.log(url);
          }
       }else{
          let file = path.join(__dirname , 'static', url);
@@ -208,21 +196,23 @@ let readtext = new Promise(function(resolve, reject){
                res.writeHead(200,{'Content-Type': contentType});
                res.write(data);
                res.end();
-               console.log(file);
+               console.log(`запуск файла ${url}`);
             }
          })
       }
      
    }
    function getform(req,res){    //ФУНКЦИЯ ДЛЯ ЛОГИКИ ПЕРЕХОДОВ МЕЖДУ СТРАНИЦАМИ
-      if(req.url ==='/'){
+      //console.log('проверка')
+      //console.log(req.url)
+      if(req.url === '/'){
          sendRes("reg.html","text/html", res, req );
       }
       else if(req.url === '/log.html?'){
          sendRes("log.html","text/html", res, req );
       }
-      else if(req.url === '/reg2.html?'){
-         sendRes("reg2.html","text/html", res, req );
+      else if(req.url === '/site.html'){
+         sendRes("site.html","text/html", res, req );
       }
       else{
          console.log('не html')
@@ -230,11 +220,6 @@ let readtext = new Promise(function(resolve, reject){
          sendRes(req.url,getContentType(req.url) , res, req);
       }
    }
-
-
-
-
-
 
       }).catch(()=>{
          console.log("Troble")
