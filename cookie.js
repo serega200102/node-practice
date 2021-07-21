@@ -12,16 +12,18 @@ http.createServer(function(req,res){
  
   var name = 'yes';
   var hash = crypto.createHash('md5').update(name).digest('hex');
-   console.log(hash);
-   console.log(req.headers.cookie);
- // console.log(cookies.get('admin'));
-   cookies.set('User', `${hash}`);
-   let hashkey= hash;
-   if (req.headers.cookie.includes('User') && req.headers.cookie.includes(`${hashkey}`)){
-      console.log('good')
-   }else{
-      console.log('bad')
-   }
+ //  console.log(hash);
+ 
+   cookies.set( '1',`${hash}`,{maxAge: 2 * 60 * 60 * 1000 * 24});
+   cookies.set('LastVisit',`${new Date().toISOString()}`)
+   console.log(cookies.get('LastVisit'));
+ 
+  // let hashkey= hash;
+  // if (req.headers.cookie.includes('User') && req.headers.cookie.includes(`${hashkey}`)){
+ //     console.log('good')
+  // }else{
+  //    console.log('bad')
+  // }
   res.end();
 
 

@@ -6,10 +6,9 @@ let Cookies = require('cookies');
 const {parse} = require ('querystring'); 
 let name = 'Yes';
 var hashkey = crypto.createHash('md5').update(name).digest('hex');
-let obj;
 let objmas = [];
-let key = '';
-let countOfLogin = 0;
+let useridd;
+let lastVisit;
 let readtext = new Promise(function(resolve, reject){  
    fs.readFile("./static/Test.txt", "utf8", function(error,data){
         if(error){
@@ -54,12 +53,15 @@ let readtext = new Promise(function(resolve, reject){
                   console.log('нет такого email')
                }
                else if(result.password == objmas[index].password) {
-                  countOfLogin += 1;
+
                   console.log('ВЫ ЗАШЛИ!!')
-                  cookies.set(`${result.email}`,`true`)
+                  cookies.set('LastVisit',`${new Date().toISOString()}`)
+                  //cookies.set(`${result.email}`,`true`)
+                  cookies.set('userid', `${objmas[index].password2}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
+                  cookies.set('userkey',`${hashkey}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
+                  //cookies.set('LastVisit',`${new Date().toISOString()}`)
                   
-                  
-                  cookies.set('User',`${hashkey}`)
+                 
                   //getform(req,res);
                   //sendRes("site.html","text/html", res, req );
                   res.writeHead(302, {"Location": "site.html"});
@@ -75,11 +77,12 @@ let readtext = new Promise(function(resolve, reject){
             collectRequestData(req, result => {
                   //console.log(result.password)
                      result.password = crypto.createHash('md5').update(result.password).digest('hex');
-                     let a = []
+                     result.password2 = Math.random()*(100-1+1)+1;
                      console.log('Записываем данные нового клиента')
                      //console.log(a)
+                     //console.log(result)
                      //objmas.push(JSON.parse(data))
-                     objmas.push((result))
+                     objmas.push(result)
                      //console.log(JSON.stringify(objmas))
                      fs.writeFile("./static/Test.txt", JSON.stringify(objmas), function(error){
                         if(error){
@@ -154,24 +157,40 @@ let readtext = new Promise(function(resolve, reject){
    
     function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
       console.log('TUUUUUUUUUUUUUUUUUUUUUUUUUT')
+      
       console.log(url)
       if(url == 'site.html'){   
-         if(req.headers.cookie.includes('User') && req.headers.cookie.includes(`${hashkey}`)){
-            let file = path.join(__dirname , 'static', url);
-            console.log(countOfLogin)
-         fs.readFile(file,'utf8',(err, data)=>{
-            if(err){
-               res.writeHead(404);
-               res.write('file not found');
-               res.end();
-               console.log(`error 404 ${file}`);
-               console.log(url);
+         
+         console.log('TIMEEEE')
+         //lastVisit = cookies.get('LastVisit')
+         //console.log(cookies.get('userid'));
+         console.log(req.headers.cookie);
+         for(i=0; i <objmas.length ; i++ ){
+            if (req.headers.cookie.includes(`${objmas[i].password2}`)){
+               console.log('нашееел')
+               useridd = i;
+            }else{
+               console.log('не нашел')
             }
-            else{
-               res.writeHead(200,{'Content-Type': contentType});
-               res.write(data);
-               res.end();
-               console.log(file);
+           
+         }
+         console.log('цикл конец')
+         let file = path.join(__dirname , 'static', url);
+         if(req.headers.cookie.includes('userid') && req.headers.cookie.includes(`${hashkey}`) && 
+            req.headers.cookie.includes(`userkey`)&&req.headers.cookie.includes(`${objmas[useridd].password2}`)){
+            fs.readFile(file,'utf8',(err, data)=>{
+               if(err){
+                  res.writeHead(404);
+                  res.write('file not found');
+                  res.end();
+                  console.log(`error 404 ${file}`);
+                  console.log(url);
+               }
+               else{
+                  res.writeHead(200,{'Content-Type': contentType});
+                  res.write(data);
+                  res.end();
+                  console.log(file);
             }
          })
          }else{
