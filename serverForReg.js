@@ -8,7 +8,7 @@ let name = 'Yes';
 var hashkey = crypto.createHash('md5').update(name).digest('hex');
 let objmas = [];
 let useridd;
-let lastVisit;
+let time;
 let readtext = new Promise(function(resolve, reject){  
    fs.readFile("./static/Test.txt", "utf8", function(error,data){
         if(error){
@@ -40,7 +40,7 @@ let readtext = new Promise(function(resolve, reject){
             let index = -1;
             //console.log('тут инфа из сервера')
             //console.log(objmas)
-           // console.log(result)
+            //console.log(result)
             //console.log(result.password)
             for(let i = 0; i<objmas.length; i++ ){
                if(result.email == objmas[i].email){
@@ -54,10 +54,11 @@ let readtext = new Promise(function(resolve, reject){
                }
                else if(result.password == objmas[index].password) {
                   console.log('ВЫ ЗАШЛИ!!')
-                  objmas[index].lastVisit=`${new Date()}`
-                  cookies.set('LastVisit',`${new Date().toISOString()}`)
+                  objmas[index].Timecode = `${new Date().toISOString()}`
+                  //console.log(time - objmas[index].Timecode)
+                  cookies.set('TimeUserCode',`${new Date().toISOString()}`)
                   //cookies.set(`${result.email}`,`true`)
-                  cookies.set('userid', `${objmas[index].password2}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
+                  cookies.set('usercode', `${objmas[index].password2}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
                   cookies.set('userkey',`${hashkey}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
                   //cookies.set('LastVisit',`${new Date().toISOString()}`)
                   
@@ -157,14 +158,13 @@ let readtext = new Promise(function(resolve, reject){
    
     function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
       console.log('TUUUUUUUUUUUUUUUUUUUUUUUUUT')
-      
+
       console.log(url)
       if(url == 'site.html'){   
          
          console.log('TIMEEEE')
-        // lastVisit = cookies.get('LastVisit')
-         //console.log(cookies.get('userid'));
-         console.log(req.headers.cookie);
+         time = new Date();
+         
          for(i=0; i <objmas.length ; i++ ){
             if (req.headers.cookie.includes(`${objmas[i].password2}`)){
                console.log('нашееел')
@@ -175,9 +175,16 @@ let readtext = new Promise(function(resolve, reject){
            
          }
          console.log('цикл конец')
+         //console.log(time)
+        // console.log(objmas[useridd].Timecode)
+        console.log(typeof(Date.parse(time)))
+        console.log(Date.parse(objmas[useridd].Timecode) - Date.parse(time))
+        let Timecheck = Date.parse(objmas[useridd].Timecode) - Date.parse(time)
+        if(Timecheck < 172800000){
+           
          let file = path.join(__dirname , 'static', url);
-         if(req.headers.cookie.includes('userid') && req.headers.cookie.includes(`${hashkey}`) && 
-            req.headers.cookie.includes(`userkey`)&&req.headers.cookie.includes(`${objmas[useridd].password2}`)){
+         if(req.headers.cookie.includes('userkey') && req.headers.cookie.includes(`${hashkey}`) && 
+            req.headers.cookie.includes(`usercode`)&&req.headers.cookie.includes(`${objmas[useridd].password2}`)){
             fs.readFile(file,'utf8',(err, data)=>{
                if(err){
                   res.writeHead(404);
@@ -202,6 +209,9 @@ let readtext = new Promise(function(resolve, reject){
                console.log(`error 404 ${file}`);
                console.log(url);
          }
+        }
+         
+        
       }else{
          let file = path.join(__dirname , 'static', url);
          fs.readFile(file,'utf8',(err, data)=>{
