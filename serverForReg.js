@@ -53,8 +53,8 @@ let readtext = new Promise(function(resolve, reject){
                   console.log('нет такого email')
                }
                else if(result.password == objmas[index].password) {
-
                   console.log('ВЫ ЗАШЛИ!!')
+                  objmas[index].lastVisit=`${new Date()}`
                   cookies.set('LastVisit',`${new Date().toISOString()}`)
                   //cookies.set(`${result.email}`,`true`)
                   cookies.set('userid', `${objmas[index].password2}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
@@ -162,7 +162,7 @@ let readtext = new Promise(function(resolve, reject){
       if(url == 'site.html'){   
          
          console.log('TIMEEEE')
-         //lastVisit = cookies.get('LastVisit')
+        // lastVisit = cookies.get('LastVisit')
          //console.log(cookies.get('userid'));
          console.log(req.headers.cookie);
          for(i=0; i <objmas.length ; i++ ){
@@ -191,6 +191,7 @@ let readtext = new Promise(function(resolve, reject){
                   res.write(data);
                   res.end();
                   console.log(file);
+                  
             }
          })
          }else{
