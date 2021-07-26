@@ -35,6 +35,26 @@ let readtext = new Promise(function(resolve, reject){
          console.log('тут проверка url')
          console.log(req.url)
          if(req.url == '/site.html'){
+            let UsCode = cookies.get('usercode');
+            console.log(UsCode)
+            let numberOfPerson;
+            collectRequestData(req, result => {
+            console.log('инфа из аккаунт')
+            console.log(result)
+            
+            console.log(objmas)
+            for(i=0;i<objmas.length;i++){
+               if(UsCode ==  objmas[i].password2){
+                  objmas[i].Name= `${result.Name}`
+                  objmas[i].Age= `${result.age}`
+                  console.log('Записали инфу')
+               }   
+            } 
+            console.log(objmas)
+            });
+            console.log(objmas)
+         }
+         else if(req.url == '/log.html'){
             
             collectRequestData(req, result => {
             let index = -1;
@@ -191,7 +211,7 @@ let readtext = new Promise(function(resolve, reject){
                   res.write('file not found');
                   res.end();
                   console.log(`error 404 ${file}`);
-                  console.log(url);
+                  console.log(url);  
                }
                else{
                   res.writeHead(200,{'Content-Type': contentType});
