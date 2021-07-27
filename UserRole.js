@@ -1,0 +1,1 @@
+let Roles = {"1":"User","2":"Doctor","3":"Admin"}

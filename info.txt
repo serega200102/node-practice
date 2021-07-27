@@ -1,1 +1,0 @@
-{"firstname":"Лиза","email":"elizawetakuznetsova@yandex.ru"}

@@ -9,6 +9,7 @@ var hashkey = crypto.createHash('md5').update(name).digest('hex');
 let objmas = [];
 let useridd;
 let time;
+CountId = 1;
 let readtext = new Promise(function(resolve, reject){  
    fs.readFile("./static/Test.txt", "utf8", function(error,data){
         if(error){
@@ -32,61 +33,52 @@ let readtext = new Promise(function(resolve, reject){
 
 
       if (req.method === 'POST') {
-         console.log('тут проверка url')
-         console.log(req.url)
+
          if(req.url == '/site.html'){
+            objmas[index].Timecode = `${new Date().toISOString()}`   //Нужно, что бы обновлять последнюю активность пользователя
             let UsCode = cookies.get('usercode');
-            console.log(UsCode)
             let numberOfPerson;
             collectRequestData(req, result => {
-            console.log('инфа из аккаунт')
-            console.log(result)
             
             console.log(objmas)
             for(i=0;i<objmas.length;i++){
                if(UsCode ==  objmas[i].password2){
                   objmas[i].Name= `${result.Name}`
                   objmas[i].Age= `${result.age}`
-                  console.log('Записали инфу')
                }   
             } 
-            console.log(objmas)
+
             });
-            console.log(objmas)
+
          }
          else if(req.url == '/log.html'){
+
             
             collectRequestData(req, result => {
             let index = -1;
-            //console.log('тут инфа из сервера')
-            //console.log(objmas)
-            //console.log(result)
-            //console.log(result.password)
+
             for(let i = 0; i<objmas.length; i++ ){
                if(result.email == objmas[i].email){
                   index = i;
                   } 
                }
                result.password = crypto.createHash('md5').update(result.password).digest('hex');
-                 // console.log(result.password)
+
                if(index == -1){
                   console.log('нет такого email')
                }
                else if(result.password == objmas[index].password) {
                   console.log('ВЫ ЗАШЛИ!!')
                   objmas[index].Timecode = `${new Date().toISOString()}`
-                  //console.log(time - objmas[index].Timecode)
+
                   cookies.set('TimeUserCode',`${new Date().toISOString()}`)
-                  //cookies.set(`${result.email}`,`true`)
+
                   cookies.set('usercode', `${objmas[index].password2}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
                   cookies.set('userkey',`${hashkey}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
-                  //cookies.set('LastVisit',`${new Date().toISOString()}`)
-                  
-                 
-                  //getform(req,res);
-                  //sendRes("site.html","text/html", res, req );
+
+
                   res.writeHead(302, {"Location": "site.html"});
-                  //res.write(data);
+
                   res.end();
                }
                else{
@@ -96,15 +88,15 @@ let readtext = new Promise(function(resolve, reject){
          }
          else{
             collectRequestData(req, result => {
-                  //console.log(result.password)
+
                      result.password = crypto.createHash('md5').update(result.password).digest('hex');
                      result.password2 = Math.random()*(100-1+1)+1;
+                     result.id = CountId;
+                     CountId += 1;
                      console.log('Записываем данные нового клиента')
-                     //console.log(a)
-                     //console.log(result)
-                     //objmas.push(JSON.parse(data))
+
                      objmas.push(result)
-                     //console.log(JSON.stringify(objmas))
+
                      fs.writeFile("./static/Test.txt", JSON.stringify(objmas), function(error){
                         if(error){
                            console.log('бедаа')
@@ -140,7 +132,7 @@ let readtext = new Promise(function(resolve, reject){
           request.on('data', chunk => {
    
               body += chunk.toString();
-            //console.log(body);
+
           });
           request.on('end', () => {
               callback(parse(body));
@@ -177,8 +169,6 @@ let readtext = new Promise(function(resolve, reject){
    
    
     function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
-      console.log('TUUUUUUUUUUUUUUUUUUUUUUUUUT')
-
       console.log(url)
       if(url == 'site.html'){   
          
@@ -195,10 +185,8 @@ let readtext = new Promise(function(resolve, reject){
            
          }
          console.log('цикл конец')
-         //console.log(time)
-        // console.log(objmas[useridd].Timecode)
-        console.log(typeof(Date.parse(time)))
-        console.log(Date.parse(objmas[useridd].Timecode) - Date.parse(time))
+        //console.log(typeof(Date.parse(time)))
+       // console.log(Date.parse(objmas[useridd].Timecode) - Date.parse(time))
         let Timecheck = Date.parse(objmas[useridd].Timecode) - Date.parse(time)
         if(Timecheck < 172800000){
            
@@ -253,8 +241,7 @@ let readtext = new Promise(function(resolve, reject){
      
    }
    function getform(req,res){    //ФУНКЦИЯ ДЛЯ ЛОГИКИ ПЕРЕХОДОВ МЕЖДУ СТРАНИЦАМИ
-      //console.log('проверка')
-      //console.log(req.url)
+
       if(req.url === '/'){
          sendRes("reg.html","text/html", res, req );
       }
