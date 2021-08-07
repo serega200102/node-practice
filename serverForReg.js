@@ -4,11 +4,13 @@ const path = require('path');
 var crypto = require('crypto');
 let Cookies = require('cookies');
 const {parse} = require ('querystring'); 
+const parsee = require('node-html-parser').parse;
 let name = 'Yes';
 var hashkey = crypto.createHash('md5').update(name).digest('hex');
 let objmas = [];
 let useridd;
 let time;
+let Appointment = [];
 CountId = 1;
 let readtext = new Promise(function(resolve, reject){  
    fs.readFile("./static/Test.txt", "utf8", function(error,data){
@@ -33,9 +35,30 @@ let readtext = new Promise(function(resolve, reject){
 
 
       if (req.method === 'POST') {
-
-         if(req.url == '/site.html'){
-            objmas[index].Timecode = `${new Date().toISOString()}`   //Нужно, что бы обновлять последнюю активность пользователя
+         if(req.url == '/siteForUser.html'){
+            collectRequestData(req, result => {
+               console.log(result)
+               for(i=0;i<objmas.length;i++){
+                  if(req.headers.cookie.includes(objmas[i].password2)){
+                     result.user=objmas[i].email
+                  }
+               }
+               console.log(result)
+               Appointment.push(result)
+               console.log(Appointment)
+               fs.writeFile("./static/text.txt", JSON.stringify(Appointment), function(error){
+                  if(error){
+                     console.log('бедаа')
+                     console.log(error)
+                     
+                  }else{
+                     console.log('записано')
+                  } 
+               })
+            });
+         }
+         else if(req.url == '/site.html'){
+            objmas[index].Timecode = `${new Date().toISOString()}`   //Нужно, чтобы обновлять последнюю активность пользователя
             let UsCode = cookies.get('usercode');
             let numberOfPerson;
             collectRequestData(req, result => {
@@ -55,7 +78,7 @@ let readtext = new Promise(function(resolve, reject){
 
             
             collectRequestData(req, result => {
-            let index = -1;
+            let index = -1;                     // переменная для проверки наличия email в базе данных
 
             for(let i = 0; i<objmas.length; i++ ){
                if(result.email == objmas[i].email){
@@ -76,23 +99,35 @@ let readtext = new Promise(function(resolve, reject){
                   cookies.set('usercode', `${objmas[index].password2}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
                   cookies.set('userkey',`${hashkey}`,{maxAge: 2 * 60 * 60 * 1000 * 24})
 
-
-                  res.writeHead(302, {"Location": "site.html"});
-
+                  if(objmas[index].TypeOfUser == 1){
+                  res.writeHead(302, {"Location": "siteForUser.html"});
                   res.end();
+                  }
+                  else if(objmas[index].TypeOfUser == 2){
+                     res.writeHead(302, {"Location": "siteForAdmin.html"});
+                     res.end();
+                  }
+                  else if(objmas[index].TypeOfUser == 3){
+                     res.writeHead(302, {"Location": "siteForDoctor.html"});
+                     res.end();
+                  }
                }
                else{
                   console.log('пароль не верный')
                }  
             });
          }
-         else{
+         else if(req.url == '/'){               //возможно ьудет ошибка с url(заменить на reg.html)
             collectRequestData(req, result => {
-
+                     for(i=0;i<objmas.length-1;i++){
+                        CountId = objmas[i].id + 1
+                        console.log('странный вывод')
+                        console.log(CountId)
+                     }
                      result.password = crypto.createHash('md5').update(result.password).digest('hex');
                      result.password2 = Math.random()*(100-1+1)+1;
                      result.id = CountId;
-                     CountId += 1;
+                     //CountId += 1;
                      console.log('Записываем данные нового клиента')
 
                      objmas.push(result)
@@ -170,7 +205,7 @@ let readtext = new Promise(function(resolve, reject){
    
     function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
       console.log(url)
-      if(url == 'site.html'){   
+      if(url == '/siteForUser.html' || url == '/siteForAdmin.html'||url == '/siteForDoctor.html'){   
          
          console.log('TIMEEEE')
          time = new Date();
@@ -185,8 +220,6 @@ let readtext = new Promise(function(resolve, reject){
            
          }
          console.log('цикл конец')
-        //console.log(typeof(Date.parse(time)))
-       // console.log(Date.parse(objmas[useridd].Timecode) - Date.parse(time))
         let Timecheck = Date.parse(objmas[useridd].Timecode) - Date.parse(time)
         if(Timecheck < 172800000){
            
@@ -202,10 +235,25 @@ let readtext = new Promise(function(resolve, reject){
                   console.log(url);  
                }
                else{
+                  /*const root = parsee(data);
+                  const bodyy = root.querySelector('body');
+                  //console.log(bodyy)
+                  data.replace("</body>",'<div id = "asdf">buuu</div></body>');
+                  //root.appendChild('<h1>Добро Пожаловать, Доктор)</h1>');
+                  console.log('TUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUT');
+                  //console.log(root.toString());*/
+                  let doctors = []
+                  for(i=0;i<objmas.length;i++){
+                     if(objmas[i].TypeOfUser == 3){
+                        doctors.push(objmas[i].email)
+                       // console.log('есть')
+                     } 
+                  }
+                  data = data.replace(/\{\{Doctors\}\}/,`<p>Список докторов: ${doctors} </p>`)
+                  console.log(doctors);
                   res.writeHead(200,{'Content-Type': contentType});
                   res.write(data);
                   res.end();
-                  console.log(file);
                   
             }
          })
@@ -259,7 +307,7 @@ let readtext = new Promise(function(resolve, reject){
    }
 
       }).catch(()=>{
-         console.log("Troble")
+         console.log("Trouble")
       })
   
 

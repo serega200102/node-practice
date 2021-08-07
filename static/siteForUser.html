@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
   </head>
-  <body>
+  <body id="body">
     <header>
       <h1 class="head-h1">Добрый день, заполните информацию о себе</h1>
     </header>
@@ -40,6 +40,41 @@
             />
           </div>
           <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+      </div>
+    </section>
+    <section class="Recording">
+      <div id="parent">{{Doctors}}</div>
+      <div class="container">
+        <form
+          class="row justify-content-center"
+          method="post"
+          action="siteForUser.html"
+        >
+          <div class="mb-3">
+            <label for="exampleInputEmail1" class="form-label"
+              >Введите email доктора из списка выше</label
+            >
+            <input
+              name="Doctor"
+              type="email"
+              class="form-control"
+              id="exampleInputEmail1"
+              aria-describedby="emailHelp"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="exampleInputPassword1" class="form-label"
+              >Время записи</label
+            >
+            <input
+              name="time"
+              type="number"
+              class="form-control"
+              id="exampleInputPassword1"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Записаться</button>
         </form>
       </div>
     </section>
