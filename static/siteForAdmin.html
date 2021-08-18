@@ -7,6 +7,52 @@
     <title>Document</title>
   </head>
   <body>
-    <h1>Добро пожаловать,Админ</h1>
+    <h1>Админ)</h1>
+    <div id="parent">{{Recordings}}</div>
+    <h2>Выберите из списка выше данные записи, которую вы хотите удалить</h2>
+    <div class="container">
+      <form
+        class="row justify-content-center"
+        method="post"
+        action="siteForAdmin.html"
+      >
+        <div class="mb-3">
+          <label for="exampleInputEmail1" class="form-label"
+            >Введите email Доктора</label
+          >
+          <input
+            name="emailDoc"
+            type="email"
+            class="form-control"
+            id="exampleInputEmail1"
+            aria-describedby="emailHelp"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="exampleInputEmail1" class="form-label"
+            >Введите email пациента</label
+          >
+          <input
+            name="email"
+            type="email"
+            class="form-control"
+            id="exampleInputEmail1"
+            aria-describedby="emailHelp"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="exampleInputPassword1" class="form-label"
+            >Время записи</label
+          >
+          <input
+            name="time"
+            type="number"
+            class="form-control"
+            id="exampleInputPassword1"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Удалить запись</button>
+      </form>
+    </div>
   </body>
 </html>

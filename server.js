@@ -5,11 +5,14 @@ var crypto = require('crypto');
 let Cookies = require('cookies');
 const {parse} = require ('querystring'); 
 const parsee = require('node-html-parser').parse;
+const { json } = require('body-parser');
 let name = 'Yes';
 var hashkey = crypto.createHash('md5').update(name).digest('hex');
 let objmas = [];
 let useridd;
 let time;
+let Appointments = [];
+let AppointmentsUser = [];
 let Appointment = [];
 CountId = 1;
 let readtext = new Promise(function(resolve, reject){  
@@ -18,13 +21,28 @@ let readtext = new Promise(function(resolve, reject){
            console.log('бедаа')
            reject();
         }else{
-           resolve(data);
+         fs.readFile("./static/text.txt", "utf8", function(errorr,dataA){
+            if(errorr){
+               console.log('бедаа')
+               
+            }else{
+               Appointment.push(dataA)
+               console.log('Скопировали данные записей перед запуском сервера')
+               resolve(data);
+            }  
+         })
+           
            console.log('Скопировали данные перед запуском сервера')
         }  
      })
   });
   
   readtext.then((data) => {
+     //console.log(Appointment)
+     console.log('Буратино')
+     Appointment = JSON.parse(Appointment[0])
+     console.log(Appointment)
+     console.log(typeof(Appointment))
      objmas.push(data);
      objmas = JSON.parse(objmas)
      console.log('Информация загружена и обработана в json')
@@ -35,18 +53,21 @@ let readtext = new Promise(function(resolve, reject){
 
 
       if (req.method === 'POST') {
-         if(req.url == '/siteForUser.html'){
+         
+         if(req.url == '/siteForAdmin.html'){
             collectRequestData(req, result => {
+               console.log('BUUUUUUUUUUUUUUUUM')
                console.log(result)
-               for(i=0;i<objmas.length;i++){
-                  if(req.headers.cookie.includes(objmas[i].password2)){
-                     result.user=objmas[i].email
+               Appointments = Appointment;
+               //Appointments = JSON.parse(Appointments)
+               console.log(Appointments)
+               for(i=0;i<Appointments.length;i++){
+                  if(Appointments[i].Doctor == result.emailDoc && Appointments[i].user == result.email && Appointments[i].time == result.time){
+                     console.log('deliiite')
+                     Appointments.splice(i,1)
                   }
-               }
-               console.log(result)
-               Appointment.push(result)
-               console.log(Appointment)
-               fs.writeFile("./static/text.txt", JSON.stringify(Appointment), function(error){
+               } 
+               fs.writeFile("./static/text.txt", JSON.stringify(Appointments), function(error){
                   if(error){
                      console.log('бедаа')
                      console.log(error)
@@ -55,6 +76,32 @@ let readtext = new Promise(function(resolve, reject){
                      console.log('записано')
                   } 
                })
+            });
+         }
+         if(req.url == '/siteForUser.html'){
+            collectRequestData(req, result => {
+               for(i=0;i<objmas.length;i++){
+                  if(req.headers.cookie.includes(objmas[i].password2)){
+                     result.user=objmas[i].email
+                  }
+               }
+               Appointments=Appointment
+               Appointments.push(result)
+               console.log('запушили')
+               
+               //console.log(Appointments)
+               fs.writeFile("./static/text.txt", JSON.stringify(Appointments), function(error){
+                  if(error){
+                     console.log('бедаа')
+                     console.log(error)
+                     
+                  }else{
+                     console.log('записано')
+                  } 
+               })
+               console.log('Проверкааа')
+               Appointment = Appointments
+               console.log(JSON.stringify(Appointment))
             });
          }
          else if(req.url == '/site.html'){
@@ -149,6 +196,9 @@ let readtext = new Promise(function(resolve, reject){
      
        }
        else {
+         // if(req.url == '/siteForDoctor.html'){
+
+        // }
          getform(req,res);
        }
    
@@ -205,8 +255,115 @@ let readtext = new Promise(function(resolve, reject){
    
     function sendRes( url, contentType, res, req ){     //ФУНКЦИЯ ДЛЯ ПЕРЕХОДА НА НОВЫЙ get ЗАПРОС
       console.log(url)
-      if(url == '/siteForUser.html' || url == '/siteForAdmin.html'||url == '/siteForDoctor.html'){   
+      if(url == '/siteForUser.html' || url == '/siteForAdmin.html'||url == '/siteForDoctor.html'){  
+      if(url == '/siteForDoctor.html') {
+         console.log('ДОктор заходит')
+         //Appointment = JSON.stringify(Appointment)
+         console.log(Appointment)
+         console.log(typeof(Appointment))
+         time = new Date();
          
+         for(i=0; i <objmas.length ; i++ ){
+            if (req.headers.cookie.includes(`${objmas[i].password2}`)){
+               console.log('нашееел')
+               useridd = i;
+            }else{
+               console.log('не нашел')
+            }
+           
+         }
+         let Timecheck = Date.parse(objmas[useridd].Timecode) - Date.parse(time)
+        if(Timecheck < 172800000){
+           
+         let file = path.join(__dirname , 'static', url);
+         if(req.headers.cookie.includes('userkey') && req.headers.cookie.includes(`${hashkey}`) && 
+            req.headers.cookie.includes(`usercode`)&&req.headers.cookie.includes(`${objmas[useridd].password2}`)){
+            fs.readFile(file,'utf8',(err, data)=>{
+               if(err){
+                  res.writeHead(404);
+                  res.write('file not found');
+                  res.end();
+                  console.log(`error 404 ${file}`);
+                  console.log(url);  
+               }
+               else{
+                  let yourAppoint=[];
+                  console.log('Тип тут')
+                  console.log(Appointment)
+                  Appointments = Appointment
+                  console.log(Appointment)
+                  console.log(Appointments)
+                  for(i=0;i<Appointments.length;i++){
+                     //console.log(Appointment[i].Doctor)
+                     if(Appointments[i].Doctor == objmas[useridd].email){
+                        yourAppoint.push(Appointments[i])
+                     }
+                  }
+                  data = data.replace(/\{\{Recordings\}\}/,`<p>Список записей: ${JSON.stringify(yourAppoint)} </p>`)
+                  //console.log(doctors);
+                  res.writeHead(200,{'Content-Type': contentType});
+                  res.write(data);
+                  res.end();
+                  
+            }
+         })
+         }else{
+            console.log('не прошло')
+            res.writeHead(404);
+            res.write('file not found');
+            res.end();
+            console.log(`error 404 ${file}`);
+            console.log(url);
+         }
+        }
+      }
+      if(url == '/siteForAdmin.html'){
+         time = new Date();
+         
+         for(i=0; i <objmas.length ; i++ ){
+            if (req.headers.cookie.includes(`${objmas[i].password2}`)){
+               console.log('нашееел')
+               useridd = i;
+            }else{
+               console.log('не нашел')
+            }
+           
+         }
+         let Timecheck = Date.parse(objmas[useridd].Timecode) - Date.parse(time)
+        if(Timecheck < 172800000){
+           
+         let file = path.join(__dirname , 'static', url);
+         if(req.headers.cookie.includes('userkey') && req.headers.cookie.includes(`${hashkey}`) && 
+            req.headers.cookie.includes(`usercode`)&&req.headers.cookie.includes(`${objmas[useridd].password2}`)){
+            fs.readFile(file,'utf8',(err, data)=>{
+               if(err){
+                  res.writeHead(404);
+                  res.write('file not found');
+                  res.end();
+                  console.log(`error 404 ${file}`);
+                  console.log(url);  
+               }
+               else{
+                  let Appointmentss = JSON.stringify(Appointment)
+                  data = data.replace(/\{\{Recordings\}\}/,`<p>Список записей: ${Appointmentss} </p>`)
+                  //console.log(doctors);
+                  res.writeHead(200,{'Content-Type': contentType});
+                  res.write(data);
+                  res.end();
+                  
+            }
+         })
+         }else{
+            console.log('не прошло')
+            res.writeHead(404);
+            res.write('file not found');
+            res.end();
+            console.log(`error 404 ${file}`);
+            console.log(url);
+         }
+        }
+      }
+      if(url == '/siteForUser.html'){
          console.log('TIMEEEE')
          time = new Date();
          
@@ -260,20 +417,21 @@ let readtext = new Promise(function(resolve, reject){
          }else{
             console.log('не прошло')
             res.writeHead(404);
-               res.write('file not found');
-               res.end();
-               console.log(`error 404 ${file}`);
-               console.log(url);
+            res.write('file not found');
+            res.end();
+            console.log(`error 404 ${file}`);
+            console.log(url);
          }
         }
          
-        
+      } 
       }else{
          let file = path.join(__dirname , 'static', url);
          fs.readFile(file,'utf8',(err, data)=>{
             if(err){
                res.writeHead(404);
                res.write('file not found');
+               
                res.end();
                console.log(`error 404 ${file}`);
                console.log(url);
@@ -286,7 +444,6 @@ let readtext = new Promise(function(resolve, reject){
             }
          })
       }
-     
    }
    function getform(req,res){    //ФУНКЦИЯ ДЛЯ ЛОГИКИ ПЕРЕХОДОВ МЕЖДУ СТРАНИЦАМИ
 
